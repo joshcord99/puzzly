@@ -1,36 +1,76 @@
 {
   "rules": {
+    ".read": false,
+    ".write": false,
     "users": {
       "$userId": {
-        ".read": "$userId === auth.uid",
-        ".write": "$userId === auth.uid",
-        ".validate": "newData.hasChildren(['displayName', 'email', 'createdAt']) && newData.child('displayName').isString() && newData.child('email').isString()"
+        ".read": "auth != null && $userId === auth.uid",
+        ".write": "auth != null && $userId === auth.uid && newData.child('email').val() === auth.token.email && newData.child('puzzlesCompleted').val() === data.child('puzzlesCompleted').val()",
+        ".validate": "newData.hasChildren(['displayName', 'email', 'uniqueId', 'createdAt']) && newData.child('displayName').isString() && newData.child('displayName').val().length > 0 && newData.child('displayName').val().length <= 80 && newData.child('email').isString() && newData.child('uniqueId').val() === auth.uid && newData.child('createdAt').isNumber()",
+        "email": {
+          ".validate": "newData.val() === auth.token.email"
+        },
+        "createdAt": {
+          ".validate": "!data.exists() || newData.val() === data.val()"
+        },
+        "puzzlesCompleted": {
+          ".write": false,
+          ".validate": "newData.isNumber() && newData.val() >= 0"
+        }
       }
     },
     "sessions": {
+      ".indexOn": ["hostId", "puzzleId", "status"],
       "$sessionId": {
-        ".read": "data.child('participants').child(auth.uid).exists()",
-        ".write": "data.child('participants').child(auth.uid).exists()",
-        ".validate": "newData.hasChildren(['hostId', 'participants', 'puzzleId', 'status', 'createdAt'])",
+        ".read": "auth != null && data.child('participants').child(auth.uid).exists()",
+        ".write": false,
+        ".validate": "newData.hasChildren(['hostId', 'participants', 'puzzleId', 'status', 'createdAt']) && newData.child('hostId').isString() && newData.child('puzzleId').isString() && (newData.child('status').val() === 'active' || newData.child('status').val() === 'ended') && newData.child('createdAt').isNumber()",
+        "hostId": {
+          ".validate": "newData.val() === data.val()"
+        },
+        "puzzleId": {
+          ".validate": "newData.val() === data.val()"
+        },
+        "createdAt": {
+          ".validate": "newData.val() === data.val()"
+        },
+        "status": {
+          ".write": "auth != null && data.parent().child('hostId').val() === auth.uid"
+        },
         "participants": {
           "$participantId": {
-            ".validate": "$participantId === auth.uid || newData.val() === true"
+            ".write": false,
+            ".validate": "!newData.exists() || (newData.hasChildren(['userId', 'displayName', 'joinedAt', 'isOnline', 'isActive']) && newData.child('userId').val() === $participantId && newData.child('displayName').isString() && newData.child('joinedAt').isNumber() && newData.child('isOnline').isBoolean() && newData.child('isActive').isBoolean())"
           }
         },
         "puzzleState": {
+          ".write": "auth != null && data.parent().child('participants').child(auth.uid).exists() && data.parent().child('status').val() === 'active'",
+          ".validate": "newData.hasChildren(['progress', 'lastUpdated']) && newData.child('progress').isNumber() && newData.child('progress').val() >= 0 && newData.child('progress').val() <= 100 && newData.child('lastUpdated').isNumber()",
           "pieces": {
             "$pieceId": {
-              ".validate": "newData.hasChildren(['position', 'rotation', 'placed', 'lastModified']) && newData.child('position').hasChildren(['x', 'y'])"
+              ".validate": "newData.hasChildren(['id', 'position', 'targetPosition', 'rotation', 'isPlaced']) && newData.child('id').val() === $pieceId && newData.child('position').hasChildren(['x', 'y']) && newData.child('position/x').isNumber() && newData.child('position/y').isNumber() && newData.child('targetPosition').hasChildren(['x', 'y']) && newData.child('targetPosition/x').isNumber() && newData.child('targetPosition/y').isNumber() && newData.child('rotation').isNumber() && newData.child('isPlaced').isBoolean()"
+            }
+          },
+          "completedPieces": {
+            "$pieceId": {
+              ".validate": "newData.val() === true"
             }
           }
         }
       }
     },
     "puzzles": {
+      ".indexOn": ["createdBy", "createdAt", "difficulty"],
       "$puzzleId": {
         ".read": "auth != null",
-        ".write": "auth != null",
-        ".validate": "newData.hasChildren(['imageUrl', 'totalPieces', 'difficulty', 'createdAt']) && newData.child('totalPieces').isNumber() && (newData.child('difficulty').val() === 'easy' || newData.child('difficulty').val() === 'medium' || newData.child('difficulty').val() === 'hard')"
+        ".write": "auth != null && ((!data.exists() && newData.child('createdBy').val() === auth.uid) || data.child('createdBy').val() === auth.uid)",
+        ".validate": "newData.hasChildren(['imageUrl', 'pieceCount', 'difficulty', 'createdAt', 'createdBy']) && newData.child('imageUrl').isString() && newData.child('pieceCount').isNumber() && newData.child('pieceCount').val() >= 4 && newData.child('pieceCount').val() <= 2000 && (newData.child('difficulty').val() === 'easy' || newData.child('difficulty').val() === 'medium' || newData.child('difficulty').val() === 'hard') && newData.child('createdAt').isNumber() && newData.child('createdBy').isString()",
+        "createdAt": {
+          ".validate": "!data.exists() || newData.val() === data.val()"
+        },
+        "createdBy": {
+          ".validate": "!data.exists() || newData.val() === data.val()"
+        }
       }
     }
   }
