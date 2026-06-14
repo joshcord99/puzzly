@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
 import { CollaborativeCanvas } from '../components/Canvas/CollaborativeCanvas';
 import { UserList } from '../components/User/UserList';
 import { usePuzzle } from '../hooks/usePuzzle';
@@ -7,18 +7,18 @@ import { useRealtimeSync } from '../hooks/useRealtimeSync';
 
 interface PuzzleScreenProps {
   route: any;
-  navigation: any;
 }
 
-export const PuzzleScreen: React.FC<PuzzleScreenProps> = ({ route, navigation }) => {
+export const PuzzleScreen: React.FC<PuzzleScreenProps> = ({ route }) => {
   const { puzzleId, sessionId } = route.params || {};
-  const { puzzle, puzzleState, progress } = usePuzzle(puzzleId, sessionId);
+  const { puzzle, puzzleState: loadedState, progress, movePiece, isLoading, error } = usePuzzle(puzzleId, sessionId);
   const { participants } = useRealtimeSync(sessionId || '');
+  const puzzleState = loadedState;
 
   if (!puzzle) {
     return (
       <View style={styles.container}>
-        <Text>Loading puzzle...</Text>
+        {isLoading ? <ActivityIndicator /> : <Text>{error || 'Puzzle unavailable'}</Text>}
       </View>
     );
   }
@@ -32,8 +32,7 @@ export const PuzzleScreen: React.FC<PuzzleScreenProps> = ({ route, navigation })
       <View style={styles.canvasContainer}>
         <CollaborativeCanvas
           puzzleState={puzzleState}
-          puzzleImage={puzzle.imageUrl}
-          sessionId={sessionId}
+          onPieceMove={movePiece}
         />
       </View>
 
@@ -47,7 +46,7 @@ export const PuzzleScreen: React.FC<PuzzleScreenProps> = ({ route, navigation })
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    flexDirection: 'row',
+    backgroundColor: '#fff',
   },
   header: {
     position: 'absolute',
@@ -64,9 +63,10 @@ const styles = StyleSheet.create({
   },
   canvasContainer: {
     flex: 1,
+    marginTop: 52,
   },
   sidebar: {
-    width: 200,
+    maxHeight: 150,
     backgroundColor: '#f5f5f5',
   },
 });

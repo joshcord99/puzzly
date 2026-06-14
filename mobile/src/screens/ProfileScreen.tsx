@@ -1,5 +1,5 @@
-import React from 'react';
-import { View, StyleSheet } from 'react-native';
+import React, { useState } from 'react';
+import { View, StyleSheet, Share } from 'react-native';
 import { UserProfile } from '../components/User/UserProfile';
 import { Button } from '../components/common/Button';
 import { getCurrentUser, signOut } from '../services/firebase/auth';
@@ -9,22 +9,24 @@ interface ProfileScreenProps {
 }
 
 export const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
-  const user = getCurrentUser();
+  const [user, setUser] = useState(getCurrentUser());
 
   const handleEdit = () => {
   };
 
   const handleShareId = () => {
+    if (user) {Share.share({ message: `Join me on Puzzly. My ID is ${user.uniqueId}.` });}
   };
 
   const handleLogout = async () => {
     await signOut();
+    setUser(null);
   };
 
   if (!user) {
     return (
       <View style={styles.container}>
-        <Button title="Sign In" onPress={() => {}} />
+        <Button title="Return Home" onPress={() => navigation.navigate('Home')} />
       </View>
     );
   }

@@ -10,6 +10,13 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
   return (
     <ScrollView style={styles.container}>
       <View style={styles.section}>
+        <Text style={styles.heroTitle}>Solve together, anywhere.</Text>
+        <Text style={styles.heroText}>
+          This offline demo includes a ready-to-play puzzle and local collaboration sessions.
+        </Text>
+      </View>
+
+      <View style={styles.section}>
         <Text style={styles.sectionTitle}>Quick Actions</Text>
         <Button
           title="Create New Puzzle"
@@ -17,7 +24,13 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
           style={styles.button}
         />
         <Button
-          title="Join Session"
+          title="View Profile"
+          onPress={() => navigation.navigate('Profile')}
+          variant="secondary"
+          style={styles.button}
+        />
+        <Button
+          title="Join a Session"
           onPress={() => navigation.navigate('Collaboration')}
           variant="secondary"
           style={styles.button}
@@ -26,7 +39,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
 
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Recent Puzzles</Text>
-        <Text style={styles.emptyText}>No recent puzzles</Text>
+        <Text style={styles.emptyText}>Create a session to start the demo puzzle.</Text>
       </View>
 
       <View style={styles.section}>
@@ -51,6 +64,16 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: 'bold',
     marginBottom: 16,
+  },
+  heroTitle: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    marginBottom: 8,
+    color: '#0057b8',
+  },
+  heroText: {
+    color: '#555',
+    lineHeight: 21,
   },
   button: {
     marginBottom: 12,

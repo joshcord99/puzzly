@@ -1,16 +1,15 @@
 import React from 'react';
-import { View, StyleSheet, Image } from 'react-native';
+import { View, StyleSheet, Text } from 'react-native';
 import { GestureDetector, Gesture } from 'react-native-gesture-handler';
-import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
+import Animated, { runOnJS, useAnimatedStyle, useSharedValue } from 'react-native-reanimated';
 import { PuzzlePiece as PuzzlePieceType } from '../../services/puzzle/puzzleState';
 
 interface PuzzlePieceProps {
   piece: PuzzlePieceType;
   onMove?: (position: { x: number; y: number }) => void;
-  onRotate?: (rotation: number) => void;
 }
 
-export const PuzzlePiece: React.FC<PuzzlePieceProps> = ({ piece, onMove, onRotate }) => {
+export const PuzzlePiece: React.FC<PuzzlePieceProps> = ({ piece, onMove }) => {
   const translateX = useSharedValue(piece.position.x);
   const translateY = useSharedValue(piece.position.y);
   const rotation = useSharedValue(piece.rotation);
@@ -25,7 +24,7 @@ export const PuzzlePiece: React.FC<PuzzlePieceProps> = ({ piece, onMove, onRotat
         x: e.translationX + piece.position.x,
         y: e.translationY + piece.position.y,
       };
-      onMove?.(newPosition);
+      if (onMove) {runOnJS(onMove)(newPosition);}
     });
 
   const animatedStyle = useAnimatedStyle(() => ({
@@ -40,7 +39,9 @@ export const PuzzlePiece: React.FC<PuzzlePieceProps> = ({ piece, onMove, onRotat
   return (
     <GestureDetector gesture={panGesture}>
       <Animated.View style={[styles.piece, animatedStyle]}>
-        <View style={styles.pieceImage} />
+        <View style={styles.pieceImage}>
+          <Text style={styles.pieceText}>{piece.id.replace('piece-', '')}</Text>
+        </View>
         {piece.isPlaced && <View style={styles.placedIndicator} />}
       </Animated.View>
     </GestureDetector>
@@ -56,8 +57,16 @@ const styles = StyleSheet.create({
   pieceImage: {
     width: '100%',
     height: '100%',
-    backgroundColor: '#ccc',
+    backgroundColor: '#76b7ff',
     borderRadius: 4,
+    borderWidth: 1,
+    borderColor: '#0066cc',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  pieceText: {
+    color: '#003a73',
+    fontWeight: 'bold',
   },
   placedIndicator: {
     position: 'absolute',
