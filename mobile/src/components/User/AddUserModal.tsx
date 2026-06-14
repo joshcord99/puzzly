@@ -3,6 +3,7 @@ import { View, Text, Modal, StyleSheet, TouchableOpacity } from 'react-native';
 import { Input } from '../common/Input';
 import { Button } from '../common/Button';
 import { searchUsers } from '../../services/collaboration/userService';
+import { UserProfile } from '../../utils/types';
 
 interface AddUserModalProps {
   visible: boolean;
@@ -12,11 +13,11 @@ interface AddUserModalProps {
 
 export const AddUserModal: React.FC<AddUserModalProps> = ({ visible, onClose, onAddUser }) => {
   const [searchQuery, setSearchQuery] = useState('');
-  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [searchResults, setSearchResults] = useState<UserProfile[]>([]);
   const [isSearching, setIsSearching] = useState(false);
 
   const handleSearch = async () => {
-    if (!searchQuery.trim()) return;
+    if (!searchQuery.trim()) {return;}
 
     setIsSearching(true);
     try {

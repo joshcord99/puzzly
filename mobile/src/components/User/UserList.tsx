@@ -2,7 +2,8 @@ import React from 'react';
 import { View, Text, FlatList, StyleSheet, TouchableOpacity } from 'react-native';
 
 interface User {
-  id: string;
+  id?: string;
+  userId?: string;
   displayName: string;
   avatar?: string;
   isOnline: boolean;
@@ -28,8 +29,8 @@ export const UserList: React.FC<UserListProps> = ({ users, onRemoveUser, current
           </View>
         </View>
       </View>
-      {onRemoveUser && item.id !== currentUserId && (
-        <TouchableOpacity onPress={() => onRemoveUser(item.id)}>
+      {onRemoveUser && (item.id || item.userId) !== currentUserId && (
+        <TouchableOpacity onPress={() => onRemoveUser(item.id || item.userId || '')}>
           <Text style={styles.removeButton}>Remove</Text>
         </TouchableOpacity>
       )}
@@ -40,7 +41,8 @@ export const UserList: React.FC<UserListProps> = ({ users, onRemoveUser, current
     <FlatList
       data={users}
       renderItem={renderUser}
-      keyExtractor={(item) => item.id}
+      keyExtractor={(item) => item.id || item.userId || item.displayName}
+      ListEmptyComponent={<Text style={styles.empty}>No collaborators yet</Text>}
       style={styles.list}
     />
   );
@@ -95,5 +97,10 @@ const styles = StyleSheet.create({
   removeButton: {
     color: '#dc3545',
     fontSize: 14,
+  },
+  empty: {
+    color: '#666',
+    padding: 16,
+    textAlign: 'center',
   },
 });

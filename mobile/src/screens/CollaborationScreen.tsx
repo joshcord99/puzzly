@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Alert } from 'react-native';
 import { Input } from '../components/common/Input';
 import { Button } from '../components/common/Button';
 import { AddUserModal } from '../components/User/AddUserModal';
 import { useCollaboration } from '../hooks/useCollaboration';
+import { getCurrentUser } from '../services/firebase/auth';
+import { UserList } from '../components/User/UserList';
 
 interface CollaborationScreenProps {
   navigation: any;
@@ -12,13 +14,27 @@ interface CollaborationScreenProps {
 export const CollaborationScreen: React.FC<CollaborationScreenProps> = ({ navigation }) => {
   const [sessionIdInput, setSessionIdInput] = useState('');
   const [showAddUserModal, setShowAddUserModal] = useState(false);
-  const { createSession, joinSession, participants } = useCollaboration();
+  const { createSession, joinSession, participants, isLoading, error } = useCollaboration();
+  const user = getCurrentUser();
 
   const handleCreateSession = async () => {
+    if (!user) {return;}
+    try {
+      const session = await createSession('demo-puzzle', user.id);
+      navigation.navigate('Puzzle', { puzzleId: session.puzzleId, sessionId: session.id });
+    } catch {
+      // The hook exposes the user-facing error below.
+    }
   };
 
   const handleJoinSession = async () => {
-    if (!sessionIdInput.trim()) return;
+    if (!sessionIdInput.trim() || !user) {return;}
+    try {
+      const session = await joinSession(sessionIdInput.trim(), user.id);
+      navigation.navigate('Puzzle', { puzzleId: session.puzzleId, sessionId: session.id });
+    } catch {
+      // The hook exposes the user-facing error below.
+    }
   };
 
   return (
@@ -28,6 +44,7 @@ export const CollaborationScreen: React.FC<CollaborationScreenProps> = ({ naviga
         <Button
           title="Create New Puzzle Session"
           onPress={handleCreateSession}
+          loading={isLoading}
           style={styles.button}
         />
       </View>
@@ -43,6 +60,8 @@ export const CollaborationScreen: React.FC<CollaborationScreenProps> = ({ naviga
         <Button
           title="Join"
           onPress={handleJoinSession}
+          loading={isLoading}
+          disabled={!sessionIdInput.trim()}
           variant="secondary"
           style={styles.button}
         />
@@ -50,6 +69,7 @@ export const CollaborationScreen: React.FC<CollaborationScreenProps> = ({ naviga
 
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Collaborators</Text>
+        <UserList users={participants} />
         <Button
           title="Add Collaborator"
           onPress={() => setShowAddUserModal(true)}
@@ -62,8 +82,10 @@ export const CollaborationScreen: React.FC<CollaborationScreenProps> = ({ naviga
         visible={showAddUserModal}
         onClose={() => setShowAddUserModal(false)}
         onAddUser={(userId) => {
+          Alert.alert('Offline demo', `User ${userId} will be available when a session is open.`);
         }}
       />
+      {error ? <Text style={styles.error}>{error}</Text> : null}
     </ScrollView>
   );
 };
@@ -88,5 +110,9 @@ const styles = StyleSheet.create({
   },
   button: {
     marginBottom: 12,
+  },
+  error: {
+    color: '#b00020',
+    padding: 20,
   },
 });

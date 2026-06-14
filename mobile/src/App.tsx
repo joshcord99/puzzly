@@ -1,6 +1,16 @@
 import React from 'react';
+import { StyleSheet } from 'react-native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { AppNavigator } from './navigation/AppNavigator';
 
 export default function App() {
-  return <AppNavigator />;
+  return (
+    <GestureHandlerRootView style={styles.container}>
+      <AppNavigator />
+    </GestureHandlerRootView>
+  );
 }
+
+const styles = StyleSheet.create({
+  container: { flex: 1 },
+});
