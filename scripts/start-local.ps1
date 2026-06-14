@@ -7,6 +7,8 @@ param(
 $ErrorActionPreference = "Stop"
 $repoRoot = Split-Path -Parent $PSScriptRoot
 $nodeRuntime = "C:\Users\$env:USERNAME\AppData\Local\OpenAI\Codex\runtimes\cua_node\2f053e67fec2d258\bin"
+$portableJava = Get-ChildItem "C:\Users\$env:USERNAME\.local\java" -Filter java.exe -Recurse -ErrorAction SilentlyContinue |
+  Select-Object -First 1
 
 if (-not (Get-Command npm.cmd -ErrorAction SilentlyContinue) -and (Test-Path "$nodeRuntime\npm.cmd")) {
   $env:Path = "$nodeRuntime;$env:Path"
@@ -14,6 +16,10 @@ if (-not (Get-Command npm.cmd -ErrorAction SilentlyContinue) -and (Test-Path "$n
 
 if (-not (Get-Command npm.cmd -ErrorAction SilentlyContinue)) {
   throw "Node.js and npm are required. Install Node.js 20 or add npm to PATH."
+}
+
+if (-not (Get-Command java.exe -ErrorAction SilentlyContinue) -and $portableJava) {
+  $env:Path = "$($portableJava.DirectoryName);$env:Path"
 }
 
 if ($Install) {
@@ -29,7 +35,7 @@ if (-not $SkipWeb) {
 }
 
 if (-not $SkipFirebase) {
-  if (-not (Get-Command java -ErrorAction SilentlyContinue)) {
+  if (-not (Get-Command java.exe -ErrorAction SilentlyContinue)) {
     Write-Warning "Java is not installed; Firebase database/storage emulators cannot start."
   } else {
     Start-Process npx.cmd `
